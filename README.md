@@ -180,7 +180,7 @@ Authentication key: [none]
 General key info..: [none]
 ```
 
-To switch over to `nistp521`, gnupg cannot be used. You have to use SmartPGP:
+To switch over to `nistp521`, GnuPG cannot be used. You have to use SmartPGP:
 
 ```bash
 root@ubuntu-server:/# su - tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p521"
@@ -435,9 +435,9 @@ Save changes? (y/N) n                                    # saving leads to delet
 Quit without saving? (y/N) y
 ```
 
-### Copy required info
+### Copy required info from air gapped machine to working machine
 
-In order to be able to fully use your smartcard, you need to copy the public key as well as ownertrust to all machine you want to use your smartcard with.
+In order to be able to fully use your smartcard, you need to copy the public key as well as ownertrust to all machines you want to use your smartcard with.
 
 Create backup of public key and ownertrust:
 
@@ -454,7 +454,7 @@ gpg --import pubkey.asc
 gpg --import-ownertrust ownertrust.txt
 ```
 
-Execute on your working machine `gpg --card-status` to make it aware of the private keys on the smartcard. If everything went well you should see that the subkeys are located on the card. A `#` after the initial tags sec or ssb means that the primary key or subkey is currently not usable (offline) which is what we wish for. The primary key is only used for the creation of subkeys.
+Execute on your working machine `gpg --card-status` to make it aware of the private keys on the smartcard. If everything went well you should see that the subkeys are located on the card. A `#` after the initial tags sec or ssb means that the primary key or subkey is currently not usable (offline) which is what we wish for. The primary key is only used for the creation of subkeys and are only needed on your air gapped machine.
 
 ![secret keys](assets/gnupg_secret_keys.png)
 
