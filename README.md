@@ -27,7 +27,7 @@ In the SSH session, open a shell:
 Create non-root users:
 
 - `gpg` for GnuPG keypair creation and push subkeys to smartcard via `keytocard`
-- `tools` for building required tools smartcard management and for flashing the smartcard
+- `tools` for building required tools for smartcard management and flashing
 
 Install the required packages and start services:
 
