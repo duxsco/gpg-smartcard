@@ -32,8 +32,9 @@ Create non-root users:
 Install the required packages and start services:
 
 ```bash
-useradd -m -s /bin/bash gpg && \
+useradd -m -s /bin/bash -G tty gpg && \
 useradd -m -s /bin/bash tools && \
+chmod g=rw "$(tty)" && \
 
 apt-get update && \
 apt-get install 2to3 ant git maven openjdk-8-jdk rng-tools pcscd python3-pyscard scdaemon && \
@@ -387,9 +388,9 @@ Quit without saving? (y/N) y
 
 ### Copy required info from air gapped machine to working machine
 
-In order to be able to fully use your smartcard, you need to copy the public key as well as ownertrust to all machines you want to use your smartcard with.
+In order to be able to fully use your smartcard, you need to copy the public keys as well as ownertrust to all machines you want to use your smartcard with.
 
-Create backup of public key and ownertrust:
+Create backup of public keys and ownertrust:
 
 ```bash
 su --login gpg
@@ -430,7 +431,7 @@ List applets on **unlocked** smartcard:
 java -jar GlobalPlatformPro/gp.jar --list
 ```
 
-### Delete/uninstall applet
+### Delete applet
 
 Delete **default** applet on **unlocked** smartcard:
 
