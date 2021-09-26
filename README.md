@@ -12,8 +12,9 @@ In the following, I am using the [Ubuntu Live Server ISO](https://releases.ubunt
 - [Arch Linux Wiki](https://wiki.archlinux.org/title/Electronic_identification)
 - [Debian Wiki](https://wiki.debian.org/Smartcards)
 - [Gentoo Linux Wiki](https://wiki.gentoo.org/wiki/PCSC-Lite#Additional_software)
+- ... and whatever your search engine throws out 😉
 
-After booting from the Ubuntu Live Server ISO, setup keyboard layout and network. `ssh` into the system:
+After booting from the Ubuntu Live Server ISO, setup the keyboard layout and network. `ssh` into the system:
 
 ![ssh config](assets/ssh0.png)
 
@@ -23,7 +24,7 @@ In the SSH session, open a shell:
 
 ![ssh config](assets/ssh2.png)
 
-Install required packages and start the `pcscd` service:
+Create non-root users `gpg` (for GnuPG keypair creation and `keytocard`) and `tools` for build required tools to flash the smartcard. Install the required packages and start the `pcscd` service:
 
 ```bash
 useradd -m -s /bin/bash gpg && \
@@ -35,21 +36,36 @@ rm -rf /var/lib/apt/lists/* && \
 systemctl start pcscd; echo $?
 ```
 
-Compile the required tools. This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap`. Make sure to use JavaCard 3.0.4 which is the latest version supported by smartcard "J3H145".
+Build the required software:
+
+- [SmartPGP](https://github.com/ANSSI-FR/SmartPGP): a free and open source implementation of the [OpenPGP card 3.4 specification](https://gnupg.org/ftp/specs/OpenPGP-smart-card-application-3.4.pdf) in JavaCard
+- [GlobalPlatformPro](https://github.com/martinpaljak/GlobalPlatformPro): load and manage applets on compatible JavaCards
+- [oracle_javacard_sdks](https://github.com/martinpaljak/oracle_javacard_sdks): Oracle JavaCard Classic SDKs
+
+This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of SmartPGP is `v1.20-3.0.4` and of GlobalPlatformPro is `v20.01.23`. Make sure you use a recent version and select a JavaCard 3.0.4 flavor of SmartPGP and oracle_javacard_sdks which is the latest version supported by the smartcard "J3H145".
+
+Run these commands as `tools` user => Execute `su --login tools` beforehand:
 
 ```bash
-su - tools -c "
+# Select a recent release version of SmartPGP with 3.0.4 JavaCard flavor
+export SmartPGP_VERSION="v1.20-3.0.4" && \
 git clone https://github.com/ANSSI-FR/SmartPGP.git && \
 pushd SmartPGP && \
-git checkout v1.20-3.0.4 && \
+git checkout "${SmartPGP_VERSION}" && \
 git submodule add https://github.com/martinpaljak/oracle_javacard_sdks sdks && \
 sed -i 's#<javacard>#<javacard jckit=\"./sdks/jc304_kit\">#' build.xml && \
 ant && \
-popd && \
+popd; echo $?
+```
 
+Run these commands as `tools` user => Execute `su --login tools` beforehand:
+
+```bash
+# Select a recent release version of GlobalPlatformPro
+export GlobalPlatformPro_VERSION="v20.01.23" && \
 git clone https://github.com/martinpaljak/GlobalPlatformPro.git && \
 pushd GlobalPlatformPro && \
-git checkout v20.01.23 && \
+git checkout "${GlobalPlatformPro_VERSION}" && \
 sed -i 's#http://central.maven.org#https://repo1.maven.org#' build.xml && \
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 && \
 mvn package && \
@@ -57,12 +73,9 @@ ant && \
 popd; echo $?"
 ```
 
-⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠<br>
-⚠ Now, internet access is not required anymore.&nbsp;&nbsp;⚠<br>
-⚠ You can disconnect your machine.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⚠<br>
-⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠⚠
+> ⚠ Now, internet access is not required anymore. You can disconnect your machine if you like. ⚠
 
-We need to patch python scripts:
+We need to patch Python scripts to use Python 3:
 
 ```bash
 sed -i 's|#!/usr/bin/env python$|#!/usr/bin/env python3|' /home/tools/SmartPGP/bin/smartpgp/commands.py /home/tools/SmartPGP/bin/smartpgp-cli /home/tools/SmartPGP/bin/example-set-mixed-crypto.py && \
@@ -70,61 +83,45 @@ find /home/tools/SmartPGP/bin/ -type f -exec 2to3 -w {} \; && \
 sed -i 's#is not#!=#' /home/tools/SmartPGP/bin/smartpgp/commands.py; echo $?
 ```
 
-Flash, create key and lock (copy, paste and execute one after another):
+> ⚠ Make a backup of the following key! Lock the smartcard for production use! ⚠
+
+Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard and lock the smartcard with the key. Run these commands as `tools` user => Execute `su --login tools` beforehand.
 
 ```bash
-# Switch to "tools" user
-su - tools
-
-# Flash the smartcard
-java -jar GlobalPlatformPro/gp.jar -install SmartPGP/SmartPGPApplet.cap -default; echo $?
-
-# Don't forget to backup this key at a secure location
-( umask 0077 && openssl rand --hex 16 | awk '{print toupper($0)}' > /home/tools/.card_secret ); echo $?
-
-# Lock the smartcard (important!!!)
+( umask 0077 && dd iflag=fullblock if=/dev/random | hexdump -n 16 -e '4/4 "%08X" 1 "\n"' > /home/tools/.card_secret ) && \
+java -jar GlobalPlatformPro/gp.jar -install SmartPGP/SmartPGPApplet.cap -default && \
 cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar -lock; echo $?
-
-# Switch back to root
-exit
 ```
 
 ## Create GnuPG keypair
 
-I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with JavaCard 3.1, but compatible smartcards are missing. Furthermore, Curve448 is only supported on [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32). The next best algorithm (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's not going to be copied to the smartcard.
+I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with JavaCard 3.1, but compatible smartcards are missing. Furthermore, Curve448 is only supported on [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32). The next best algorithm (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, doesn't face the limitations of the smartcard.
 
-I create my keypairs for the smartcard the following way in `bash` as user `gpg` (`su - gpg`). 
+Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
 ```bash
-echo "" && \
-read -r -s -p 'Passphrase to set for private key: ' PASSPHRASE && \
-echo "" && \
-read -r -s -p 'Please, repeat the passphrase: ' PASSPHRASE_REPEAT && \
-[ "${PASSPHRASE}" != "${PASSPHRASE_REPEAT}" ] && \
-echo -e "\nPassphrases don't match! Aborting...\n" || (
-    echo -e "\n" && \
-    read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
+(
+    mygpg() { echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 $*; } && \
     echo "" && \
-    read -r -p 'How many years do you want the subkeys to be valid?
-You can always extend the validity or create new subkeys later on! ' YEARS && \
-    GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
-    echo "${PASSPHRASE}" | gpg --homedir "${GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-        --quick-generate-key "${CONTACT}" ed25519 cert 0 && \
-    FINGERPRINT=$(gpg --homedir "${GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
-    echo "${PASSPHRASE}" | gpg --homedir "${GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-        --quick-add-key "${FINGERPRINT}" nistp521/ecdsa sign "${YEARS}y" && \
-    echo "${PASSPHRASE}" | gpg --homedir "${GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-        --quick-add-key "${FINGERPRINT}" nistp521 encrypt "${YEARS}y" && \
-    echo "${PASSPHRASE}" | gpg --homedir "${GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-        --quick-add-key "${FINGERPRINT}" nistp521/ecdsa auth "${YEARS}y" && \
-    echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
+    read -r -s -p 'Passphrase to set for private key: ' PASSPHRASE && \
+    echo "" && \
+    read -r -s -p 'Please, repeat the passphrase: ' PASSPHRASE_REPEAT && \
+    [ "${PASSPHRASE}" != "${PASSPHRASE_REPEAT}" ] && \
+    echo -e "\nPassphrases don't match! Aborting...\n" || (
+        echo -e "\n" && \
+        read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
+        echo "" && \
+        read -r -p 'How many years do you want the subkeys to be valid?
+    You can always extend the validity or create new subkeys later on! ' YEARS && \
+        MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
+        mygpg --quick-generate-key "'${CONTACT}'" ed25519 cert 0 && \
+        FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
+        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521/ecdsa sign "'${YEARS}y'" && \
+        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521 encrypt    "'${YEARS}y'" && \
+        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521/ecdsa auth "'${YEARS}y'" && \
+        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
+    )
 )
-```
-
-Unset passphrases:
-
-```bash
-unset PASSPHRASE PASSPHRASE_REPEAT
 ```
 
 Sample run:
@@ -154,86 +151,27 @@ ssb   nistp521 2021-09-25 [A] [expires: 2022-09-25]
 
 ## Copy GnuPG subkeys to smartcard
 
-⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
+> ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
 
 ### Switch to nistp521 subkeys
 
 By default, `rsa2048` is used for all subkeys:
 
 ```bash
-root@ubuntu-server:/# su - gpg -c "gpg --card-status"
-Reader ...........: KOBIL KAAN Advanced (E_094100658) 00 00
-Application ID ...: D276000124010304AFAF000000000000
-Application type .: OpenPGP
-Version ..........: 3.4
-Manufacturer .....: unknown
-Serial number ....: 00000000
-Name of cardholder: [not set]
-Language prefs ...: en
-Salutation .......:
-URL of public key : [not set]
-Login data .......: [not set]
-Signature PIN ....: forced
-Key attributes ...: rsa2048 rsa2048 rsa2048
-Max. PIN lengths .: 127 127 127
-PIN retry counter : 3 0 3
-Signature counter : 0
-KDF setting ......: off
-Signature key ....: [none]
-Encryption key....: [none]
-Authentication key: [none]
-General key info..: [none]
+su --login gpg -c "gpg --card-status | grep 'Key attributes'"
 ```
 
 To switch over to `nistp521`, GnuPG cannot be used. You have to use SmartPGP:
 
 ```bash
-root@ubuntu-server:/# su - tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p521"
-Select OpenPGP Applet
-90 00
-Verify Admin PIN
-90 00
-Switch to P-521 (sig)
-90 00
-Switch to P-521 (dec)
-90 00
-Switch to P-521 (auth)
-90 00
-```
-
-Thereafter, you have:
-
-```bash
-root@ubuntu-server:/# su - gpg -c "gpg --card-status"
-Reader ...........: KOBIL KAAN Advanced (E_094100658) 00 00
-Application ID ...: D276000124010304AFAF000000000000
-Application type .: OpenPGP
-Version ..........: 3.4
-Manufacturer .....: unknown
-Serial number ....: 00000000
-Name of cardholder: [not set]
-Language prefs ...: en
-Salutation .......:
-URL of public key : [not set]
-Login data .......: [not set]
-Signature PIN ....: forced
-Key attributes ...: nistp521 nistp521 nistp521
-Max. PIN lengths .: 127 127 127
-PIN retry counter : 3 0 3
-Signature counter : 0
-KDF setting ......: off
-Signature key ....: [none]
-Encryption key....: [none]
-Authentication key: [none]
-General key info..: [none]
+su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p521"
 ```
 
 ### Set smartcard pin and admin pin
 
-```bash
-# Switch to user "gpg"
-su - gpg
+Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
+```bash
 gpg --card-edit
 
 # Enable "admin" commands
@@ -257,10 +195,9 @@ gpg/card> passwd
 
 ### Set name (optional)
 
-```bash
-# Switch to user "gpg"
-su - gpg
+Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
+```bash
 gpg --card-edit
 
 # Enable "admin" commands
@@ -272,10 +209,9 @@ gpg/card> name
 
 ### Set keyserver (optional)
 
-```bash
-# Switch to user "gpg"
-su - gpg
+Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
+```bash
 gpg --card-edit
 
 # Enable "admin" commands
@@ -287,12 +223,11 @@ gpg/card> url
 
 ### Copy subkeys to smartcard
 
-⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
+> ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
+
+Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
 ```bash
-# Switch to user "gpg"
-su - gpg
-
 gpg@ubuntu-server:~$ gpg --list-keys
 /tmp/tmp.Ovi2fCyOGG/pubring.kbx
 -------------------------------
@@ -447,7 +382,7 @@ In order to be able to fully use your smartcard, you need to copy the public key
 Create backup of public key and ownertrust:
 
 ```bash
-su - gpg
+su --login gpg
 gpg --export --armor > pubkey.asc
 gpg --export-ownertrust > ownertrust.txt
 ```
@@ -465,7 +400,7 @@ Execute on your working machine `gpg --card-status` to make it aware of the priv
 
 ## Troubleshooting
 
-⚠ First of all, make sure that the smartcard is unlocked! Otherwise, you may brick your smartcard! ⚠
+> ⚠ First of all, make sure that the smartcard is unlocked! Otherwise, you may brick your smartcard! ⚠
 
 ```bash
 cat .card_secret | xargs java -jar GlobalPlatformPro/gp.jar -unlock -key
@@ -473,13 +408,13 @@ cat .card_secret | xargs java -jar GlobalPlatformPro/gp.jar -unlock -key
 
 ### Show info
 
-- Show info on **unlocked** smartcard:
+Show info on **unlocked** smartcard:
 
 ```bash
 java -jar GlobalPlatformPro/gp.jar -info
 ```
 
-- List applets on **unlocked** smartcard:
+List applets on **unlocked** smartcard:
 
 ```bash
 java -jar GlobalPlatformPro/gp.jar -list
@@ -487,13 +422,13 @@ java -jar GlobalPlatformPro/gp.jar -list
 
 ### Delete/uninstall applet
 
-- Delete **default** applet on **unlocked** smartcard:
+Delete **default** applet on **unlocked** smartcard:
 
 ```bash
 java -jar GlobalPlatformPro/gp.jar -delete -default
 ```
 
-- Delete applet on **unlocked** smartcard:
+Delete applet on **unlocked** smartcard:
 
   1. First copy `From:` value of `APP` in applet list output
   2. Execute while providing said value:
