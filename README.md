@@ -1,4 +1,4 @@
-# (WIP) GnuPG Smartcard (WIP)
+# GnuPG Smartcard
 
 ## Credits
 
@@ -6,7 +6,7 @@ Thanks [Fan Jiang](https://blog.amayume.net/diy-smartcard-authentication-with-sm
 
 ## Prepare the system
 
-In the following, I am using the [Ubuntu Live Server ISO](https://releases.ubuntu.com/focal/) as well as the smartcard "J3H145" (recommended [here](https://github.com/ANSSI-FR/SmartPGP/search?q=J3H145&type=issues)). You also need a supported smartcard reader of whom I prefer those including a pinpad. Further info:
+In the following, I am using the [Ubuntu Live Server ISO](https://releases.ubuntu.com/focal/) as well as the smartcard `J3H145` (recommended [here](https://github.com/ANSSI-FR/SmartPGP/search?q=J3H145&type=issues)). You also need a supported smartcard reader of whom I prefer those including a pinpad. Further info:
 
 - [CCID Driver](https://github.com/LudovicRousseau/CCID#ccid-and-iccd-readers)
 - [Arch Linux Wiki](https://wiki.archlinux.org/title/Electronic_identification)
@@ -24,16 +24,22 @@ In the SSH session, open a shell:
 
 ![ssh config](assets/ssh2.png)
 
-Create non-root users `gpg` (for GnuPG keypair creation and `keytocard`) and `tools` for build required tools to flash the smartcard. Install the required packages and start the `pcscd` service:
+Create non-root users:
+
+- `gpg` for GnuPG keypair creation and push subkeys to smartcard via `keytocard`
+- `tools` for building required tools smartcard management and for flashing the smartcard
+
+Install the required packages and start services:
 
 ```bash
 useradd -m -s /bin/bash gpg && \
 useradd -m -s /bin/bash tools && \
 
 apt-get update && \
-apt-get install 2to3 ant git maven openjdk-8-jdk pcscd python3-pyscard scdaemon && \
+apt-get install 2to3 ant git maven openjdk-8-jdk rng-tools pcscd python3-pyscard scdaemon && \
 rm -rf /var/lib/apt/lists/* && \
-systemctl start pcscd; echo $?
+systemctl start pcscd && \
+systemctl start rng-tools; echo $?
 ```
 
 Build the required software:
@@ -42,7 +48,7 @@ Build the required software:
 - [GlobalPlatformPro](https://github.com/martinpaljak/GlobalPlatformPro): load and manage applets on compatible JavaCards
 - [oracle_javacard_sdks](https://github.com/martinpaljak/oracle_javacard_sdks): Oracle JavaCard Classic SDKs
 
-This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of SmartPGP is `v1.20-3.0.4` and of GlobalPlatformPro is `v20.01.23`. Make sure you use a recent version and select a JavaCard 3.0.4 flavor of SmartPGP and oracle_javacard_sdks which is the latest version supported by the smartcard "J3H145".
+This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of `SmartPGP` is `v1.20-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
 
 Run these commands as `tools` user => Execute `su --login tools` beforehand:
 
@@ -70,7 +76,7 @@ sed -i 's#http://central.maven.org#https://repo1.maven.org#' build.xml && \
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 && \
 mvn package && \
 ant && \
-popd; echo $?"
+popd; echo $?
 ```
 
 > ⚠ Now, internet access is not required anymore. You can disconnect your machine if you like. ⚠
@@ -85,15 +91,15 @@ sed -i 's#is not#!=#' /home/tools/SmartPGP/bin/smartpgp/commands.py; echo $?
 
 > ⚠ Make a backup of the following key! Lock the smartcard for production use! ⚠
 
-Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard and lock the smartcard with the key. Run these commands as `tools` user => Execute `su --login tools` beforehand.
+Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard (this may take a while) and lock the smartcard with the key. Run these commands as `tools` user => Execute `su --login tools` beforehand.
 
 ```bash
 ( umask 0077 && dd iflag=fullblock if=/dev/random | hexdump -n 16 -e '4/4 "%08X" 1 "\n"' > /home/tools/.card_secret ) && \
-java -jar GlobalPlatformPro/gp.jar -install SmartPGP/SmartPGPApplet.cap -default && \
-cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar -lock; echo $?
+java -jar GlobalPlatformPro/gp.jar --install SmartPGP/SmartPGPApplet.cap --default && \
+cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; echo $?
 ```
 
-## Create GnuPG keypair
+## Create a GnuPG keypair
 
 I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with JavaCard 3.1, but compatible smartcards are missing. Furthermore, Curve448 is only supported on [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32). The next best algorithm (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, doesn't face the limitations of the smartcard.
 
@@ -101,7 +107,6 @@ Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
 ```bash
 (
-    mygpg() { echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 $*; } && \
     echo "" && \
     read -r -s -p 'Passphrase to set for private key: ' PASSPHRASE && \
     echo "" && \
@@ -112,13 +117,17 @@ Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
         read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
         echo "" && \
         read -r -p 'How many years do you want the subkeys to be valid?
-    You can always extend the validity or create new subkeys later on! ' YEARS && \
+You can always extend the validity or create new subkeys later on! ' YEARS && \
         MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
-        mygpg --quick-generate-key "'${CONTACT}'" ed25519 cert 0 && \
+        echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
+            --quick-generate-key "${CONTACT}" ed25519 cert 0 && \
         FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
-        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521/ecdsa sign "'${YEARS}y'" && \
-        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521 encrypt    "'${YEARS}y'" && \
-        mygpg --quick-add-key "'${FINGERPRINT}'" nistp521/ecdsa auth "'${YEARS}y'" && \
+        echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
+            --quick-add-key "${FINGERPRINT}" nistp521/ecdsa sign "${YEARS}y" && \
+        echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
+            --quick-add-key "${FINGERPRINT}" nistp521 encrypt    "${YEARS}y" && \
+        echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
+            --quick-add-key "${FINGERPRINT}" nistp521/ecdsa auth "${YEARS}y" && \
         echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
     )
 )
@@ -135,18 +144,18 @@ Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): Maria Musterfrau <m
 How many years do you want the subkeys to be valid?
 You can always extend the validity or create new subkeys later on! 1
 
-Success! You can find the GnuPG homedir containing your keypair at /tmp/tmp.Ovi2fCyOGG
+Success! You can find the GnuPG homedir containing your keypair at /tmp/tmp.MRXuClxx99
 Please, copy that directory somewhere safe!
 
-gpg@ubuntu-server:~$ gpg --homedir /tmp/tmp.Ovi2fCyOGG --list-secret-keys
-/tmp/tmp.Ovi2fCyOGG/pubring.kbx
+gpg@ubuntu-server:~$ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
+/tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
-sec   ed25519 2021-09-25 [C]
-      FEFC68B98B189A04B21ABE42733CE6C77184CEDD
+sec   ed25519 2021-09-26 [C]
+      839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-ssb   nistp521 2021-09-25 [S] [expires: 2022-09-25]
-ssb   nistp521 2021-09-25 [E] [expires: 2022-09-25]
-ssb   nistp521 2021-09-25 [A] [expires: 2022-09-25]
+ssb   nistp521 2021-09-26 [S] [expires: 2022-09-26]
+ssb   nistp521 2021-09-26 [E] [expires: 2022-09-26]
+ssb   nistp521 2021-09-26 [A] [expires: 2022-09-26]
 ```
 
 ## Copy GnuPG subkeys to smartcard
@@ -204,6 +213,7 @@ gpg --card-edit
 gpg/card> admin
 
 # Execute "name" command and type in your name thereafter
+# You will be prompted for the admin pin
 gpg/card> name
 ```
 
@@ -228,45 +238,45 @@ gpg/card> url
 Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
 
 ```bash
-gpg@ubuntu-server:~$ gpg --list-keys
-/tmp/tmp.Ovi2fCyOGG/pubring.kbx
+gpg@ubuntu-server:~$ gpg --list-secret-keys
+/tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
-pub   ed25519 2021-09-25 [C]
-      FEFC68B98B189A04B21ABE42733CE6C77184CEDD
+sec   ed25519 2021-09-26 [C]
+      839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-sub   nistp521 2021-09-25 [S] [expires: 2022-09-25]
-sub   nistp521 2021-09-25 [E] [expires: 2022-09-25]
-sub   nistp521 2021-09-25 [A] [expires: 2022-09-25]
+ssb   nistp521 2021-09-26 [S] [expires: 2022-09-26]
+ssb   nistp521 2021-09-26 [E] [expires: 2022-09-26]
+ssb   nistp521 2021-09-26 [A] [expires: 2022-09-26]
 
-gpg@ubuntu-server:~$ gpg --edit-key FEFC68B98B189A04B21ABE42733CE6C77184CEDD
+gpg@ubuntu-server:~$ gpg --edit-key 839C383BDC49BD54948F93617ACF1D096561F913
 gpg (GnuPG) 2.2.19; Copyright (C) 2019 Free Software Foundation, Inc.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
 Secret key is available.
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C # certify
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C # certify
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S # sign
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E # encrypt
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A # authenticate
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S # sign
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E # encrypt
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A # authenticate
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 1
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp521/37EBFD26F43F59E2                           # pay attention to the star!
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb* nistp521/E42BBA11B2C61A52                           # subkey 1 selected (*)
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -275,41 +285,41 @@ Please select where to store the key:
    (3) Authentication key
 Your selection? 1
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb* nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
-gpg> key 1                                               # deselect key 1
+gpg> key 1                                               # deselect subkey 1
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 2
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb* nistp521/8684AA0423C56A75                           # subkey 2 selected
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb* nistp521/406011C3623AFECC                           # subkey 2 selected
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -317,41 +327,41 @@ Please select where to store the key:
    (2) Encryption key
 Your selection? 2
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb* nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb* nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 2                                               # deselect subkey 2
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb  nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb  nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
-gpg> key 3                                               # select subkey 3
+gpg> key 3
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb* nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb* nistp521/B419336565A70C54                           # subkey 3 selected
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -359,15 +369,15 @@ Please select where to store the key:
    (3) Authentication key
 Your selection? 3
 
-sec  ed25519/733CE6C77184CEDD
-     created: 2021-09-25  expires: never       usage: C
+sec  ed25519/7ACF1D096561F913
+     created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/37EBFD26F43F59E2
-     created: 2021-09-25  expires: 2022-09-25  usage: S
-ssb  nistp521/8684AA0423C56A75
-     created: 2021-09-25  expires: 2022-09-25  usage: E
-ssb* nistp521/D427AB87DFA10C89
-     created: 2021-09-25  expires: 2022-09-25  usage: A
+ssb  nistp521/E42BBA11B2C61A52
+     created: 2021-09-26  expires: 2022-09-26  usage: S
+ssb  nistp521/406011C3623AFECC
+     created: 2021-09-26  expires: 2022-09-26  usage: E
+ssb* nistp521/B419336565A70C54
+     created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> quit
@@ -394,7 +404,7 @@ gpg --import pubkey.asc
 gpg --import-ownertrust ownertrust.txt
 ```
 
-Execute on your working machine `gpg --card-status` to make it aware of the private keys on the smartcard. If everything went well you should see that the subkeys are located on the card. A `#` after the initial tags sec or ssb means that the primary key or subkey is currently not usable (offline) which is what we wish for. The primary key is only used for the creation of subkeys and are only needed on your air gapped machine.
+Execute on your working machine `gpg --card-status` to make it aware of the private keys on the smartcard. If everything went well you should see that the subkeys are located on the card. A `#` after the initial tags `sec` or `ssb` means that the primary key or subkey is currently not usable (offline) which is what we wish for in case of the primary key. The primary key is only used for the creation of subkeys and is only needed on your air gapped machine.
 
 ![secret keys](assets/gnupg_secret_keys.png)
 
@@ -403,7 +413,7 @@ Execute on your working machine `gpg --card-status` to make it aware of the priv
 > ⚠ First of all, make sure that the smartcard is unlocked! Otherwise, you may brick your smartcard! ⚠
 
 ```bash
-cat .card_secret | xargs java -jar GlobalPlatformPro/gp.jar -unlock -key
+cat .card_secret | xargs java -jar GlobalPlatformPro/gp.jar --unlock --key
 ```
 
 ### Show info
@@ -411,13 +421,13 @@ cat .card_secret | xargs java -jar GlobalPlatformPro/gp.jar -unlock -key
 Show info on **unlocked** smartcard:
 
 ```bash
-java -jar GlobalPlatformPro/gp.jar -info
+java -jar GlobalPlatformPro/gp.jar --info
 ```
 
 List applets on **unlocked** smartcard:
 
 ```bash
-java -jar GlobalPlatformPro/gp.jar -list
+java -jar GlobalPlatformPro/gp.jar --list
 ```
 
 ### Delete/uninstall applet
@@ -425,16 +435,14 @@ java -jar GlobalPlatformPro/gp.jar -list
 Delete **default** applet on **unlocked** smartcard:
 
 ```bash
-java -jar GlobalPlatformPro/gp.jar -delete -default
+java -jar GlobalPlatformPro/gp.jar --delete --default
 ```
 
-Delete applet on **unlocked** smartcard:
+Delete certain applet on **unlocked** smartcard:
 
   1. First copy `From:` value of `APP` in applet list output
   2. Execute while providing said value:
 
 ```bash
-java -jar GlobalPlatformPro/gp.jar -delete ASDFASDFASDF
+java -jar GlobalPlatformPro/gp.jar --delete ASDFASDFASDF
 ```
-
-To uninstall use flag `-uninstall` instead of `-delete`.
