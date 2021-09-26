@@ -51,7 +51,7 @@ Build the required software:
 
 This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of `SmartPGP` is `v1.20-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
 
-Run these commands as `tools` user => Execute `su --login tools` beforehand:
+Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand:
 
 ```bash
 # Select a recent release version of SmartPGP with 3.0.4 JavaCard flavor
@@ -65,7 +65,7 @@ ant && \
 popd; echo $?
 ```
 
-Run these commands as `tools` user => Execute `su --login tools` beforehand:
+Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand:
 
 ```bash
 # Select a recent release version of GlobalPlatformPro
@@ -92,7 +92,7 @@ sed -i 's#is not#!=#' /home/tools/SmartPGP/bin/smartpgp/commands.py; echo $?
 
 > ⚠ Make a backup of the following key! Lock the smartcard for production use! ⚠
 
-Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard (this may take a while) and lock the smartcard with the key. Run these commands as `tools` user => Execute `su --login tools` beforehand.
+Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard (this may take a while) and lock the smartcard with the key. Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand.
 
 ```bash
 ( umask 0077 && dd iflag=fullblock if=/dev/random | hexdump -n 16 -e '4/4 "%08X" 1 "\n"' > /home/tools/.card_secret ) && \
@@ -104,7 +104,7 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 
 I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with JavaCard 3.1, but compatible smartcards are missing. Furthermore, Curve448 is only supported on [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32). The next best algorithm (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, doesn't face the limitations of the smartcard.
 
-Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
 (
@@ -179,7 +179,7 @@ su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p521"
 
 ### Set smartcard pin and admin pin
 
-Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
 gpg --card-edit
@@ -205,7 +205,7 @@ gpg/card> passwd
 
 ### Set name (optional)
 
-Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
 gpg --card-edit
@@ -220,7 +220,7 @@ gpg/card> name
 
 ### Set keyserver (optional)
 
-Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
 gpg --card-edit
@@ -236,7 +236,7 @@ gpg/card> url
 
 > ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
 
-Run these commands as `gpg` user => Execute `su --login gpg` beforehand:
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
 gpg@ubuntu-server:~$ gpg --list-secret-keys
