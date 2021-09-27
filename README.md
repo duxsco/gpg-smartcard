@@ -6,7 +6,7 @@ Thanks [Fan Jiang](https://blog.amayume.net/diy-smartcard-authentication-with-sm
 
 ## Prepare the system
 
-In the following, I am using the [Ubuntu Live Server ISO](https://releases.ubuntu.com/focal/) as well as the smartcard `J3H145` (recommended [here](https://github.com/ANSSI-FR/SmartPGP/search?q=J3H145&type=issues)). You also need a supported smartcard reader of whom I prefer those including a pinpad. Further info:
+In the following, I am using the [Ubuntu Live Server ISO](https://releases.ubuntu.com/focal/) as well as the smartcard `J3H145` (recommended [here](https://github.com/ANSSI-FR/SmartPGP/search?q=J3H145&type=issues)). You also need a supported smartcard reader of whom I prefer those including  pinpad and screen. Further info:
 
 - [CCID Driver](https://github.com/LudovicRousseau/CCID#ccid-and-iccd-readers)
 - [Arch Linux Wiki](https://wiki.archlinux.org/title/Electronic_identification)
