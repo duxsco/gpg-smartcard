@@ -82,7 +82,7 @@ popd; echo $?
 
 > ⚠ Now, internet access is not required anymore. You can disconnect your machine if you like. ⚠
 
-We need to patch Python scripts to use Python 3:
+We need to patch Python scripts to use Python 3. Alternatively, you could use the `master` branch where scripts have been migrated to Python 3 recently ([LINK](https://github.com/ANSSI-FR/SmartPGP/issues/41)). I haven't tested the alternative approach (yet).
 
 ```bash
 sed -i 's|#!/usr/bin/env python$|#!/usr/bin/env python3|' /home/tools/SmartPGP/bin/smartpgp/commands.py /home/tools/SmartPGP/bin/smartpgp-cli /home/tools/SmartPGP/bin/example-set-mixed-crypto.py && \
