@@ -82,14 +82,6 @@ popd; echo $?
 
 > ⚠ Now, internet access is not required anymore. You can disconnect your machine if you like. ⚠
 
-We need to patch Python scripts to use Python 3. Alternatively, you could use the `master` branch where scripts have been migrated to Python 3 recently ([LINK](https://github.com/ANSSI-FR/SmartPGP/issues/41)). I haven't tested the alternative approach (yet).
-
-```bash
-sed -i 's|#!/usr/bin/env python$|#!/usr/bin/env python3|' /home/tools/SmartPGP/bin/smartpgp/commands.py /home/tools/SmartPGP/bin/smartpgp-cli /home/tools/SmartPGP/bin/example-set-mixed-crypto.py && \
-find /home/tools/SmartPGP/bin/ -type f -exec 2to3 -w {} \; && \
-sed -i 's#is not#!=#' /home/tools/SmartPGP/bin/smartpgp/commands.py; echo $?
-```
-
 > ⚠ Make a backup of the following key! Lock the smartcard for production use! ⚠
 
 Create a key ([source](https://stackoverflow.com/a/34329057)), flash the smartcard (this may take a while) and lock the smartcard with the key. Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand.
