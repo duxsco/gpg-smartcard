@@ -37,7 +37,7 @@ useradd -m -s /bin/bash tools && \
 chmod g=rw "$(tty)" && \
 
 apt-get update && \
-apt-get install 2to3 ant git maven openjdk-8-jdk rng-tools pcscd python3-pyscard scdaemon && \
+apt-get install ant git maven openjdk-8-jdk rng-tools pcscd python3-pyscard scdaemon && \
 rm -rf /var/lib/apt/lists/* && \
 systemctl start pcscd && \
 systemctl start rng-tools; echo $?
