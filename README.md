@@ -108,6 +108,12 @@ If you want to deviate from default algorithms, export:
 export MY_GPG_ALG=("" "ed25519" "cv25519" "ed25519")
 ```
 
+- Use `ed448/cv448` (recommended for non-smartcard setup on GnuPG >=2.3.0):
+
+```
+export MY_GPG_ALG=("ed448" "ed448" "cv448" "ed448")
+```
+
 - Use `rsa4096`, `rsa2048` or `rsa3072` (recommended for old setups):
 
 ```
