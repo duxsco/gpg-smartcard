@@ -105,17 +105,17 @@ If you want to deviate from default algorithms, export:
 - Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x):
 
 ```
-export MY_GPG_ALG=("ed25519" "cv25519" "ed25519")
+export MY_GPG_ALG=("" "ed25519" "cv25519" "ed25519")
 ```
 
 - Use `rsa4096`, `rsa2048` or `rsa3072` (recommended for old setups):
 
 ```
-export MY_GPG_ALG=("rsa4096" "rsa4096" "rsa4096")
+export MY_GPG_ALG=("" "rsa4096" "rsa4096" "rsa4096")
 # OR
-export MY_GPG_ALG=("rsa3072" "rsa3072" "rsa3072")
+export MY_GPG_ALG=("" "rsa3072" "rsa3072" "rsa3072")
 # OR
-export MY_GPG_ALG=("rsa2048" "rsa2048" "rsa2048")
+export MY_GPG_ALG=("" "rsa2048" "rsa2048" "rsa2048")
 ```
 
 Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
@@ -135,14 +135,14 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 You can always extend the validity or create new subkeys later on! ' YEARS && \
         MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-generate-key "${CONTACT}" ed25519 cert 0 && \
+            --quick-generate-key "${CONTACT}" ${MY_GPG_ALG[0]:-ed25519} cert 0 && \
         FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[0]:-nistp521/ecdsa} sign "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[1]:-nistp521/ecdsa} sign "${YEARS}y" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[1]:-nistp521} encrypt    "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[2]:-nistp521} encrypt    "${YEARS}y" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[2]:-nistp521/ecdsa} auth "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" ${MY_GPG_ALG[3]:-nistp521/ecdsa} auth "${YEARS}y" && \
         echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
     )
 )
