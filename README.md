@@ -100,7 +100,7 @@ Current default algorithms for subkeys (recommended for smartcard setup):
 
 The next best algorithm (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, doesn't face the limitations of the smartcard.
 
-If you want to deviate from default algorithms, export:
+If you want to deviate from default algorithms, export before running below big code block:
 
 - Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x):
 
@@ -127,6 +127,9 @@ export MY_GPG_ALG=("" "rsa2048" "rsa2048" "rsa2048")
 Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
+# If you want to deviate from default algorithms,
+# make sure to do above export of MY_GPG_ALG in the same session
+# as the one you execute below code:
 (
     echo "" && \
     read -r -s -p 'Passphrase to set for private key: ' PASSPHRASE && \
