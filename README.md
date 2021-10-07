@@ -417,7 +417,7 @@ Create backup of public keys and ownertrust:
 
 ```bash
 su --login gpg
-gpg --export --armor > pubkey.asc
+gpg --armor --export > pubkey.asc
 gpg --export-ownertrust > ownertrust.txt
 ```
 
