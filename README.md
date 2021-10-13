@@ -49,13 +49,13 @@ Build the required software:
 - [GlobalPlatformPro](https://github.com/martinpaljak/GlobalPlatformPro): load and manage applets on compatible JavaCards
 - [oracle_javacard_sdks](https://github.com/martinpaljak/oracle_javacard_sdks): Oracle JavaCard Classic SDKs
 
-This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of `SmartPGP` is `v1.20-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
+This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of `SmartPGP` is `v1.21-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
 
 Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand:
 
 ```bash
 # Select a recent release version of SmartPGP with 3.0.4 JavaCard flavor
-export SmartPGP_VERSION="v1.20-3.0.4" && \
+export SmartPGP_VERSION="v1.21-3.0.4" && \
 git clone https://github.com/ANSSI-FR/SmartPGP.git && \
 pushd SmartPGP && \
 git checkout "${SmartPGP_VERSION}" && \
@@ -100,7 +100,7 @@ My current default algorithms for the primary key and subkeys (recommended for s
 
 The next best algorithm after Curve25519 and Curve448 (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, it doesn't face the limitations set by the smartcard.
 
-If you want to deviate from default algorithms, export before running below big code block:
+If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 - Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x):
 
