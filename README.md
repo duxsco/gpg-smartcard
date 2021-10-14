@@ -98,7 +98,7 @@ I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein a
 
 My current default algorithms for the primary key and subkeys (recommended for smartcard setup):
 
-The next best algorithm after Curve25519 and Curve448 (IMHO) is `nistp521` which I use for the subkeys. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, it doesn't face the limitations set by the smartcard.
+The next best algorithm after Curve25519 and Curve448 (IMHO) is `nistp384` which I use for the subkeys. I could not get the `nistp521` authentication subkey working with `ssh`. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, it doesn't face the limitations set by the smartcard.
 
 If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
@@ -147,11 +147,11 @@ You can always extend the validity or create new subkeys later on! ' YEARS && \
             --quick-generate-key "${CONTACT}" "${MY_GPG_ALG[0]:-ed25519}" cert 0 && \
         FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[1]:-nistp521/ecdsa}" sign "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[1]:-nistp384/ecdsa}" sign "${YEARS}y" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-nistp521}" encrypt    "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-nistp384}" encrypt    "${YEARS}y" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-nistp521/ecdsa}" auth "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-nistp384/ecdsa}" auth "${YEARS}y" && \
         echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
     )
 )
@@ -177,16 +177,16 @@ gpg@ubuntu-server:~$ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
 sec   ed25519 2021-09-26 [C]
       839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-ssb   nistp521 2021-09-26 [S] [expires: 2022-09-26]
-ssb   nistp521 2021-09-26 [E] [expires: 2022-09-26]
-ssb   nistp521 2021-09-26 [A] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [S] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [E] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [A] [expires: 2022-09-26]
 ```
 
 ## Copy GnuPG subkeys to smartcard
 
 > ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
 
-### Switch to nistp521 subkeys
+### Switch to nistp384 subkeys
 
 By default, `rsa2048` is used for all subkeys:
 
@@ -194,10 +194,10 @@ By default, `rsa2048` is used for all subkeys:
 su --login gpg -c "gpg --card-status | grep 'Key attributes'"
 ```
 
-To switch over to `nistp521`, GnuPG cannot be used. You have to use SmartPGP:
+To switch over to `nistp384`, GnuPG cannot be used. You have to use SmartPGP:
 
 ```bash
-su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p521"
+su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p384"
 ```
 
 ### Set smartcard pin and admin pin
@@ -268,9 +268,9 @@ gpg@ubuntu-server:~$ gpg --list-secret-keys
 sec   ed25519 2021-09-26 [C]
       839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-ssb   nistp521 2021-09-26 [S] [expires: 2022-09-26]
-ssb   nistp521 2021-09-26 [E] [expires: 2022-09-26]
-ssb   nistp521 2021-09-26 [A] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [S] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [E] [expires: 2022-09-26]
+ssb   nistp384 2021-09-26 [A] [expires: 2022-09-26]
 
 gpg@ubuntu-server:~$ gpg --edit-key 839C383BDC49BD54948F93617ACF1D096561F913
 gpg (GnuPG) 2.2.19; Copyright (C) 2019 Free Software Foundation, Inc.
@@ -282,11 +282,11 @@ Secret key is available.
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C # certify
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S # sign
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E # encrypt
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A # authenticate
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -295,11 +295,11 @@ gpg> key 1
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp521/E42BBA11B2C61A52                           # subkey 1 selected (*)
+ssb* nistp384/E42BBA11B2C61A52                           # subkey 1 selected (*)
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -312,11 +312,11 @@ Your selection? 1
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp521/E42BBA11B2C61A52
+ssb* nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -325,11 +325,11 @@ gpg> key 1                                               # deselect subkey 1
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -338,11 +338,11 @@ gpg> key 2
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb* nistp521/406011C3623AFECC                           # subkey 2 selected
+ssb* nistp384/406011C3623AFECC                           # subkey 2 selected
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -354,11 +354,11 @@ Your selection? 2
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb* nistp521/406011C3623AFECC
+ssb* nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -367,11 +367,11 @@ gpg> key 2                                               # deselect subkey 2
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp521/B419336565A70C54
+ssb  nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -380,11 +380,11 @@ gpg> key 3
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb* nistp521/B419336565A70C54                           # subkey 3 selected
+ssb* nistp384/B419336565A70C54                           # subkey 3 selected
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
@@ -396,11 +396,11 @@ Your selection? 3
 sec  ed25519/7ACF1D096561F913
      created: 2021-09-26  expires: never       usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp521/E42BBA11B2C61A52
+ssb  nistp384/E42BBA11B2C61A52
      created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp521/406011C3623AFECC
+ssb  nistp384/406011C3623AFECC
      created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb* nistp521/B419336565A70C54
+ssb* nistp384/B419336565A70C54
      created: 2021-09-26  expires: 2022-09-26  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
