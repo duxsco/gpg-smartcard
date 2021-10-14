@@ -49,7 +49,7 @@ Build the required software:
 - [GlobalPlatformPro](https://github.com/martinpaljak/GlobalPlatformPro): load and manage applets on compatible JavaCards
 - [oracle_javacard_sdks](https://github.com/martinpaljak/oracle_javacard_sdks): Oracle JavaCard Classic SDKs
 
-This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (September 26th 2021), the current version of `SmartPGP` is `v1.21-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
+This creates `GlobalPlatformPro/gp.jar` and `SmartPGP/SmartPGPApplet.cap` among others. As of today (October 14th 2021), the current version of `SmartPGP` is `v1.21-3.0.4` and of `GlobalPlatformPro` is `v20.01.23`. Make sure you use a recent version and select a `JavaCard 3.0.4` flavor of `SmartPGP` and `oracle_javacard_sdks` which is the latest version supported by the smartcard `J3H145`.
 
 Run these commands as `tools` user **⇨** Execute `su --login tools` beforehand:
 
