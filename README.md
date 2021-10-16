@@ -470,3 +470,6 @@ Delete certain applet on **unlocked** smartcard:
 ```bash
 java -jar GlobalPlatformPro/gp.jar --delete ASDFASDFASDF
 ```
+## Other GnuPG repos
+
+https://github.com/duxco?tab=repositories&q=gpg-
