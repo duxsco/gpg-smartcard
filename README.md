@@ -152,7 +152,8 @@ You can always extend the validity or create new subkeys later on! ' YEARS && \
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-nistp384}" encrypt    "${YEARS}y" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-nistp384/ecdsa}" auth "${YEARS}y" && \
-        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n'
+        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n' && \
+        gpgconf --homedir "${MY_GPG_HOMEDIR}" --kill all
     )
 )
 ```
