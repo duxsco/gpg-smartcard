@@ -473,4 +473,4 @@ java -jar GlobalPlatformPro/gp.jar --delete ASDFASDFASDF
 ```
 ## Other GnuPG repos
 
-https://github.com/duxco?tab=repositories&q=gpg-
+https://github.com/duxsco?tab=repositories&q=gpg-
