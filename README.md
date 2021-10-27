@@ -471,6 +471,13 @@ Delete certain applet on **unlocked** smartcard:
 ```bash
 java -jar GlobalPlatformPro/gp.jar --delete ASDFASDFASDF
 ```
+
+If GnuPG is causing problems set permissions again (as root):
+
+```bash
+chmod g=rw "$(tty)"
+```
+
 ## Other GnuPG repos
 
 https://github.com/duxsco?tab=repositories&q=gpg-
