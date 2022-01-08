@@ -4,7 +4,7 @@
 
 ## Credits
 
-Thanks [Fan Jiang](https://blog.amayume.net/diy-smartcard-authentication-with-smartpgp/)
+Thanks [Fan Jiang](https://github.com/ProfFan) for: https://blog.amayume.net/diy-smartcard-authentication-with-smartpgp/
 
 ## Prepare the system
 
