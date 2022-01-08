@@ -1,5 +1,7 @@
 # GnuPG Smartcard
 
+> ⚠ Take a look at the troubleshooting (especially if it comes to GnuPG) at the bottom if you have any problems. ⚠
+
 ## Credits
 
 Thanks [Fan Jiang](https://blog.amayume.net/diy-smartcard-authentication-with-smartpgp/)
