@@ -98,8 +98,7 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 
 I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32).
 
-
-Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) and doesn't have to cope with the smartcard's limitations, because only the subkeys are going to be copied to the smartcard. rsa3072 is used for the subkeys.
+Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) and doesn't have to cope with the `J3H145` smartcard's limitations, because only the subkeys are going to be copied to the smartcard. rsa3072 is used for the subkeys.
 
 If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
