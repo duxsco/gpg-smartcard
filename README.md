@@ -96,18 +96,17 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 
 ## Create a GnuPG keypair
 
-I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported on [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32).
+I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32).
 
-My current default algorithms for the primary key and subkeys (recommended for smartcard setup):
 
-The next best algorithm after Curve25519 and Curve448 (IMHO) is `nistp384` which I use for the subkeys. I could not get the `nistp521` authentication subkey working with `ssh`. The primary key, however, is created using `ed25519` as it's supported by GnuPG 2.2.x (LTS) and it's not going to be copied to the smartcard. Thus, it doesn't face the limitations set by the smartcard.
+Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) and doesn't have to cope with the smartcard's limitations, because only the subkeys are going to be copied to the smartcard. rsa3072 is used for the subkeys.
 
 If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 - Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x):
 
 ```
-export MY_GPG_ALG=("" "ed25519" "cv25519" "ed25519")
+export MY_GPG_ALG=("ed25519" "ed25519" "cv25519" "ed25519")
 ```
 
 - Use `ed448/cv448` (recommended for non-smartcard setup on GnuPG >=2.3.0):
@@ -119,11 +118,21 @@ export MY_GPG_ALG=("ed448" "ed448" "cv448" "ed448")
 - Use `rsa4096`, `rsa3072` or `rsa2048` (recommended for old setups):
 
 ```
-export MY_GPG_ALG=("" "rsa4096" "rsa4096" "rsa4096")
+export MY_GPG_ALG=("rsa4096" "rsa4096" "rsa4096" "rsa4096")
 # OR
-export MY_GPG_ALG=("" "rsa3072" "rsa3072" "rsa3072")
+export MY_GPG_ALG=("rsa3072" "rsa3072" "rsa3072" "rsa3072")
 # OR
-export MY_GPG_ALG=("" "rsa2048" "rsa2048" "rsa2048")
+export MY_GPG_ALG=("rsa2048" "rsa2048" "rsa2048" "rsa2048")
+```
+
+- For completeness sake:
+
+```
+export MY_GPG_ALG=("nistp256/ecdsa" "nistp256/ecdsa" "nistp256" "nistp256/ecdsa")
+# OR
+export MY_GPG_ALG=("nistp384/ecdsa" "nistp384/ecdsa" "nistp384" "nistp384/ecdsa")
+# OR
+export MY_GPG_ALG=("nistp521/ecdsa" "nistp521/ecdsa" "nistp521" "nistp521/ecdsa")
 ```
 
 Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
@@ -142,18 +151,19 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
         echo -e "\n" && \
         read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
         echo "" && \
-        read -r -p 'How many years do you want the subkeys to be valid?
-You can always extend the validity or create new subkeys later on! ' YEARS && \
+        read -r -p 'When do you want your key to expire?
+I recommended January 1st of either the next year or the year after, e.g. "2024-01-01".
+You can always extend the validity or create new subkeys later on! ' DATE && \
         MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-generate-key "${CONTACT}" "${MY_GPG_ALG[0]:-ed25519}" cert 0 && \
+            --quick-generate-key "${CONTACT}" "${MY_GPG_ALG[0]:-ed25519}" cert "${DATE}" && \
         FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[1]:-nistp384/ecdsa}" sign "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[1]:-rsa3072}" sign "${DATE}" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-nistp384}" encrypt    "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-rsa3072}" encrypt    "${DATE}" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
-            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-nistp384/ecdsa}" auth "${YEARS}y" && \
+            --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-rsa3072}" auth "${DATE}" && \
         echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, copy that directory somewhere safe!\n' && \
         gpgconf --homedir "${MY_GPG_HOMEDIR}" --kill all
     )
