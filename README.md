@@ -154,7 +154,7 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
     read -r -s -p 'Passphrase to set for private key: ' PASSPHRASE && \
     echo "" && \
     read -r -s -p 'Please, repeat the passphrase: ' PASSPHRASE_REPEAT && \
-    [ "${PASSPHRASE}" != "${PASSPHRASE_REPEAT}" ] && \
+    [[ ${PASSPHRASE} != ${PASSPHRASE_REPEAT} ]] && \
     echo -e "\nPassphrases don't match! Aborting...\n" || (
         echo -e "\n" && \
         read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
