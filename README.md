@@ -155,6 +155,9 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 I recommended January 1st of either the next year or the year after, e.g. "2024-01-01".
 You can always extend the validity or create new subkeys later on! ' DATE && \
         MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
+        echo "cert-digest-algo SHA512
+default-preference-list AES256 TWOFISH CAMELLIA256 AES192 CAMELLIA192 AES CAMELLIA128 SHA512 SHA384 SHA256 BZIP2 ZLIB ZIP Uncompressed
+" > "${MY_GPG_HOMEDIR}/gpg.conf" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
             --quick-generate-key "${CONTACT}" "${MY_GPG_ALG[0]:-ed25519}" cert "${DATE}" && \
         FINGERPRINT=$(gpg --homedir "${MY_GPG_HOMEDIR}" --list-options show-only-fpr-mbox --list-secret-keys 2>/dev/null | awk '{print $1}') && \
