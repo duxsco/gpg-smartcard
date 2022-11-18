@@ -102,7 +102,7 @@ Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) a
 
 If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
-- Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x):
+- Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x; recommended for [YubiKey 5Ci](https://developers.yubico.com/PGP/YubiKey_5.2.3_Enhancements_to_OpenPGP_3.4.html)):
 
 ```
 export MY_GPG_ALG=("ed25519" "ed25519" "cv25519" "ed25519")
