@@ -133,6 +133,14 @@ export MY_GPG_ALG=("nistp256/ecdsa" "nistp256/ecdsa" "nistp256" "nistp256/ecdsa"
 export MY_GPG_ALG=("nistp384/ecdsa" "nistp384/ecdsa" "nistp384" "nistp384/ecdsa")
 # OR
 export MY_GPG_ALG=("nistp521/ecdsa" "nistp521/ecdsa" "nistp521" "nistp521/ecdsa")
+# OR
+export MY_GPG_ALG=("brainpoolP256r1/ecdsa" "brainpoolP256r1/ecdsa" "brainpoolP256r1" "brainpoolP256r1/ecdsa")
+# OR
+export MY_GPG_ALG=("brainpoolP384r1/ecdsa" "brainpoolP384r1/ecdsa" "brainpoolP384r1" "brainpoolP384r1/ecdsa")
+# OR
+export MY_GPG_ALG=("brainpoolP512r1/ecdsa" "brainpoolP512r1/ecdsa" "brainpoolP512r1" "brainpoolP512r1/ecdsa")
+# OR
+export MY_GPG_ALG=("secp256k1/ecdsa" "secp256k1/ecdsa" "secp256k1" "secp256k1/ecdsa")
 ```
 
 Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
