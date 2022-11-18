@@ -189,8 +189,9 @@ Please, repeat the passphrase:
 
 Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): Maria Musterfrau <maria@musterfrau.de>
 
-How many years do you want the subkeys to be valid?
-You can always extend the validity or create new subkeys later on! 1
+When do you want your key to expire?
+I recommended January 1st of either the next year or the year after, e.g. "2024-01-01".
+You can always extend the validity or create new subkeys later on! 2024-01-01
 
 Success! You can find the GnuPG homedir containing your keypair at /tmp/tmp.MRXuClxx99
 Please, copy that directory somewhere safe!
@@ -198,12 +199,12 @@ Please, copy that directory somewhere safe!
 gpg@ubuntu-server:~$ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
 /tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
-sec   ed25519 2021-09-26 [C]
+sec   ed25519 2022-11-18 [C] [expires: 2024-01-01]
       839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-ssb   nistp384 2021-09-26 [S] [expires: 2022-09-26]
-ssb   nistp384 2021-09-26 [E] [expires: 2022-09-26]
-ssb   nistp384 2021-09-26 [A] [expires: 2022-09-26]
+ssb   rsa3072 2022-11-18 [S] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [E] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
 ```
 
 ## Copy GnuPG subkeys to smartcard
