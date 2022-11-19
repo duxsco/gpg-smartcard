@@ -100,11 +100,17 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 >
 > ⚠ If you, however, only want to create a keypair without following the rest of this guide on smartcard setup, just make sure to **execue the commands in this section as non-root**. ⚠
 
-I prefer Curve25519 which like Curve448 is recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32) and support for key [export](https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce) and [import](https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09) is missing.
+I prefer Curve25519 which (like Curve448) is recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for Curve25519 and Curve448 has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32), and key [export](https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce) and [import](https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09) is currently not possible or limited.
 
-Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) and doesn't have to cope with the `J3H145` smartcard's limitations, because only the subkeys are going to be copied to the smartcard. rsa3072 is used for the subkeys.
+As only the subkeys, which I use rsa3072 for, are going to be copied to the smartcard, I use ed25519 for the primary key, because smartcard limitations don't matter for the primary for obvious reasons.
 
-If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
+If you want to deviate from default algorithms, export before running below big code block. The values in the exported array stand for:
+
+```
+export MY_GPG_ALG=("<primary key algo>" "<'sign' subkey algo>" "<'encrypt' subkey algo>" "<'auth' subkey algo>")
+```
+
+Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 - Use `ed25519/cv25519` (recommended for non-smartcard setups; recommended for [YubiKey 5Ci](https://developers.yubico.com/PGP/YubiKey_5.2.3_Enhancements_to_OpenPGP_3.4.html)):
 
