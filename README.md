@@ -207,6 +207,31 @@ ssb   rsa3072 2022-11-18 [E] [expires: 2024-01-01]
 ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
 ```
 
+In addition to the recommended folder backup, you can easily backup the keypair given that no Curve448 key has been created:
+
+```
+❯ gpg --homedir /tmp/tmp.MRXuClxx99 --armor --export-secret-keys > ~/secret_keys.asc
+❯ gpg --homedir /tmp/tmp.MRXuClxx99 --export-ownertrust > ~/ownertrust.txt
+```
+
+I strongly recommend testing the restore:
+
+```
+❯ export GNUPGHOME="$(mktemp -d)"
+❯ gpg --import ~/secret_keys.asc
+❯ gpg --import-ownertrust ~/ownertrust.txt
+❯ gpg --list-secret-keys
+/tmp/tmp.KTbwDxW9Om/pubring.kbx
+-------------------------------
+sec   ed25519 2022-11-18 [C] [expires: 2024-01-01]
+      839C383BDC49BD54948F93617ACF1D096561F913
+uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
+ssb   rsa3072 2022-11-18 [S] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [E] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
+❯ unset GNUPGHOME
+```
+
 ## Copy GnuPG subkeys to smartcard
 
 > ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
