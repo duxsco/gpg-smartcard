@@ -174,7 +174,7 @@ default-preference-list AES256 TWOFISH CAMELLIA256 AES192 CAMELLIA192 AES CAMELL
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-rsa3072}" encrypt "${DATE}" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-rsa3072}" auth "${DATE}" && \
-        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, \e[1;32mbackup that directory\e[0m somewhere safe!\n' && \
+        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m"'"${MY_GPG_HOMEDIR}"'".\e[0m\nPlease, \e[1;32mbackup that directory\e[0m somewhere safe!\n\nExport/import of Curve448 keys is currently unsupported:\n - https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce\n - https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09\n' && \
         gpgconf --homedir "${MY_GPG_HOMEDIR}" --kill all && \
         rm -f "${MY_GPG_HOMEDIR}/gpg.conf"
     )
