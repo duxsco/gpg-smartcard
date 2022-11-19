@@ -203,8 +203,12 @@ When do you want your key to expire?
 I recommended January 1st of either the next year or the year after, e.g. "2024-01-01".
 You can always extend the validity or create new subkeys later on! 2024-01-01
 
-Success! You can find the GnuPG homedir containing your keypair at /tmp/tmp.MRXuClxx99
-Please, copy that directory somewhere safe!
+Success! You can find the GnuPG homedir containing your keypair at "/tmp/tmp.MRXuClxx99".
+Please, backup that directory somewhere safe!
+
+Export/import of Curve448 keys is currently unsupported:
+ - https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce
+ - https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09
 
 ❯ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
 /tmp/tmp.MRXuClxx99/pubring.kbx
