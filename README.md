@@ -96,19 +96,19 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 
 ## Create a GnuPG keypair
 
-I prefer Curve25519 and Curve448 which are recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32).
+I prefer Curve25519 which like Curve448 is recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for both has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32) and support for key [export](https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce) and [import](https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09) is missing.
 
 Thus, I use ed25519 for the primary key as it's supported by GnuPG 2.2.x (LTS) and doesn't have to cope with the `J3H145` smartcard's limitations, because only the subkeys are going to be copied to the smartcard. rsa3072 is used for the subkeys.
 
 If you want to deviate from default algorithms, export before running below big code block. Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
-- Use `ed25519/cv25519` (recommended for non-smartcard setup on GnuPG 2.2.x; recommended for [YubiKey 5Ci](https://developers.yubico.com/PGP/YubiKey_5.2.3_Enhancements_to_OpenPGP_3.4.html)):
+- Use `ed25519/cv25519` (recommended for non-smartcard setups; recommended for [YubiKey 5Ci](https://developers.yubico.com/PGP/YubiKey_5.2.3_Enhancements_to_OpenPGP_3.4.html)):
 
 ```
 export MY_GPG_ALG=("ed25519" "ed25519" "cv25519" "ed25519")
 ```
 
-- Use `ed448/cv448` (recommended for non-smartcard setup on GnuPG >=2.3.0):
+- Use `ed448/cv448` (not recommended due to missing support for key [export](https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce) and [import](https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09)):
 
 ```
 export MY_GPG_ALG=("ed448" "ed448" "cv448" "ed448")
