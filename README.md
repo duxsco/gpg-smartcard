@@ -210,7 +210,7 @@ ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
 
 > ⚠ First of all, make a backup of the GnuPG homedir! If you save after a `keytocard` command, the subkey - copied to the smartcard - will be removed by GnuPG locally and exists only on the smartcard! You won't be able to copy said subkey to another smartcard! ⚠
 
-### Switch to nistp384 subkeys
+### Switch to rsa3072 subkeys
 
 By default, `rsa2048` is used for all subkeys:
 
@@ -218,10 +218,10 @@ By default, `rsa2048` is used for all subkeys:
 su --login gpg -c "gpg --card-status | grep 'Key attributes'"
 ```
 
-To switch over to `nistp384`, GnuPG cannot be used. You have to use SmartPGP:
+To switch over to `rsa3072`, GnuPG cannot be used. You have to use SmartPGP:
 
 ```bash
-su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-p384"
+su --login tools -c "/home/tools/SmartPGP/bin/smartpgp-cli switch-rsa3072"
 ```
 
 ### Set smartcard pin and admin pin
@@ -289,12 +289,12 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 gpg@ubuntu-server:~$ gpg --list-secret-keys
 /tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
-sec   ed25519 2021-09-26 [C]
+sec   ed25519 2022-11-18 [C] [expires: 2024-01-01]
       839C383BDC49BD54948F93617ACF1D096561F913
 uid           [ultimate] Maria Musterfrau <maria@musterfrau.de>
-ssb   nistp384 2021-09-26 [S] [expires: 2022-09-26]
-ssb   nistp384 2021-09-26 [E] [expires: 2022-09-26]
-ssb   nistp384 2021-09-26 [A] [expires: 2022-09-26]
+ssb   rsa3072 2022-11-18 [S] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [E] [expires: 2024-01-01]
+ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
 
 gpg@ubuntu-server:~$ gpg --edit-key 839C383BDC49BD54948F93617ACF1D096561F913
 gpg (GnuPG) 2.2.19; Copyright (C) 2019 Free Software Foundation, Inc.
@@ -304,27 +304,27 @@ There is NO WARRANTY, to the extent permitted by law.
 Secret key is available.
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C # certify
+     created: 2022-11-18  expires: 2024-01-01  usage: C # certify
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S # sign
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E # encrypt
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A # authenticate
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S # sign
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E # encrypt
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A # authenticate
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 1
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp384/E42BBA11B2C61A52                           # subkey 1 selected (*)
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb* rsa3072/E42BBA11B2C61A52                           # subkey 1 selected (*)
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -334,40 +334,40 @@ Please select where to store the key:
 Your selection? 1
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb* nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb* rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 1                                               # deselect subkey 1
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 2
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb* nistp384/406011C3623AFECC                           # subkey 2 selected
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb* rsa3072/406011C3623AFECC                           # subkey 2 selected
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -376,40 +376,40 @@ Please select where to store the key:
 Your selection? 2
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb* nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb* rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 2                                               # deselect subkey 2
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb  nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb  rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> key 3
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb* nistp384/B419336565A70C54                           # subkey 3 selected
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb* rsa3072/B419336565A70C54                           # subkey 3 selected
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> keytocard
@@ -418,14 +418,14 @@ Please select where to store the key:
 Your selection? 3
 
 sec  ed25519/7ACF1D096561F913
-     created: 2021-09-26  expires: never       usage: C
+     created: 2022-11-18  expires: 2024-01-01  usage: C
      trust: ultimate      validity: ultimate
-ssb  nistp384/E42BBA11B2C61A52
-     created: 2021-09-26  expires: 2022-09-26  usage: S
-ssb  nistp384/406011C3623AFECC
-     created: 2021-09-26  expires: 2022-09-26  usage: E
-ssb* nistp384/B419336565A70C54
-     created: 2021-09-26  expires: 2022-09-26  usage: A
+ssb  rsa3072/E42BBA11B2C61A52
+     created: 2022-11-18  expires: 2024-01-01  usage: S
+ssb  rsa3072/406011C3623AFECC
+     created: 2022-11-18  expires: 2024-01-01  usage: E
+ssb* rsa3072/B419336565A70C54
+     created: 2022-11-18  expires: 2024-01-01  usage: A
 [ultimate] (1). Maria Musterfrau <maria@musterfrau.de>
 
 gpg> quit
