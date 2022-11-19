@@ -195,7 +195,7 @@ You can always extend the validity or create new subkeys later on! 2024-01-01
 Success! You can find the GnuPG homedir containing your keypair at /tmp/tmp.MRXuClxx99
 Please, copy that directory somewhere safe!
 
-gpg@ubuntu-server:~$ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
+❯ gpg --homedir /tmp/tmp.MRXuClxx99 --list-secret-keys
 /tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
 sec   ed25519 2022-11-18 [C] [expires: 2024-01-01]
@@ -286,7 +286,7 @@ gpg/card> url
 Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
 
 ```bash
-gpg@ubuntu-server:~$ gpg --list-secret-keys
+❯ gpg --list-secret-keys
 /tmp/tmp.MRXuClxx99/pubring.kbx
 -------------------------------
 sec   ed25519 2022-11-18 [C] [expires: 2024-01-01]
@@ -296,7 +296,7 @@ ssb   rsa3072 2022-11-18 [S] [expires: 2024-01-01]
 ssb   rsa3072 2022-11-18 [E] [expires: 2024-01-01]
 ssb   rsa3072 2022-11-18 [A] [expires: 2024-01-01]
 
-gpg@ubuntu-server:~$ gpg --edit-key 839C383BDC49BD54948F93617ACF1D096561F913
+❯ gpg --edit-key 839C383BDC49BD54948F93617ACF1D096561F913
 gpg (GnuPG) 2.2.19; Copyright (C) 2019 Free Software Foundation, Inc.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
