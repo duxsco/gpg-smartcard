@@ -174,7 +174,7 @@ default-preference-list AES256 TWOFISH CAMELLIA256 AES192 CAMELLIA192 AES CAMELL
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[2]:-rsa3072}" encrypt "${DATE}" && \
         echo "${PASSPHRASE}" | gpg --homedir "${MY_GPG_HOMEDIR}" --batch --pinentry-mode loopback --quiet --passphrase-fd 0 \
             --quick-add-key "${FINGERPRINT}" "${MY_GPG_ALG[3]:-rsa3072}" auth "${DATE}" && \
-        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, backup that directory somewhere safe!\n' && \
+        echo -e '\nSuccess! You can find the GnuPG homedir containing your keypair at \e[0;1;97;104m'"${MY_GPG_HOMEDIR}"'\e[0m\nPlease, \e[1;32mbackup that directory\e[0m somewhere safe!\n' && \
         gpgconf --homedir "${MY_GPG_HOMEDIR}" --kill all && \
         rm -f "${MY_GPG_HOMEDIR}/gpg.conf"
     )
