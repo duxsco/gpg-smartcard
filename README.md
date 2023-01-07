@@ -98,7 +98,7 @@ cat /home/tools/.card_secret | xargs java -jar GlobalPlatformPro/gp.jar --lock; 
 
 > ⚠ This section can be applied, decoupled from the rest of this guide. It asks you to switch to a `gpg` user. This is only relevant if you followed this guide since beginning and booted from an Ubuntu Live-CD where the initial user is `root`. ⚠
 >
-> ⚠ If you, however, only want to create a keypair without following the rest of this guide on smartcard setup, just make sure to **execue the commands in this section as non-root**. ⚠
+> ⚠ If you, however, only want to create a keypair without following the rest of this guide on smartcard setup, just make sure to **execute the commands in this section as non-root**. ⚠
 
 I prefer Curve25519 which (like Curve448) is recommended by [Daniel J. Bernstein and Tanja Lange](https://safecurves.cr.yp.to/). Support for Curve25519 and Curve448 has been added with [JavaCard 3.1](https://docs.oracle.com/en/java/javacard/3.1/specnotes/index.html#JCSRN-GUID-48D9D6BF-B4C1-4114-9A61-5452BE82E1D2), but compatible smartcards are missing. Furthermore, Curve448 is only supported by [GnuPG >=2.3.0](https://dev.gnupg.org/source/gnupg/browse/tag%253A%2520gnupg-2.3.0/NEWS;c922a798a341261f1aafaf7c1c0217e4ce3e3acf$32), and key [export](https://dev.gnupg.org/rGa07ae85ec795e338af1bcbe288a3af4f21bb94ce) and [import](https://dev.gnupg.org/rG0d74c3c89663ee9b163742c6c75641c1b6b28f09) is currently not possible or limited.
 
