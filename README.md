@@ -171,7 +171,7 @@ Run these commands as `gpg` user **⇨** Execute `su --login gpg` beforehand:
         read -r -p 'Name and e-mail (e.g. "Max Mustermann <max@mustermann.de>"): ' CONTACT && \
         echo "" && \
         read -r -p 'When do you want your key to expire?
-I recommended January 1st of either the next year or the year after, e.g. "2024-01-01".
+I recommend January 1st of either the next year or the year after, e.g. "2024-01-01".
 You can always extend the validity or create new subkeys later on! ' DATE && \
         MY_GPG_HOMEDIR="$( umask 0077 && mktemp -d )" && \
         echo "cert-digest-algo SHA512
