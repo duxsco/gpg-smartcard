@@ -1,6 +1,17 @@
 # GnuPG Smartcard
 
-> ️⚠️ You can find information on my GnuPG public key in my [GitHub profile README](https://github.com/duxsco/)! ⚠️
+```
+  _______________________________________
+/ This repo has been archived!            \
+| Its successor is at:                    |
+\ https://github.com/duxsco/gpg-smartcard /
+  ---------------------------------------
+         \   ^__^
+          \  (oo)\_______
+             (__)\       )\/\
+                 ||----w |
+                 ||     ||
+```
 
 > ⚠ Take a look at the troubleshooting (especially if it comes to GnuPG) at the bottom if you have any problems. ⚠
 
